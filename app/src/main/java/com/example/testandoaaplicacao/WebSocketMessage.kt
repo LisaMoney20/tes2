@@ -1,4 +1,6 @@
 package com.example.testandoaaplicacao
 
-class WebSocketMessage {
-}
+data class WebSocketMessage(
+    val type: String,
+    val message: String
+)
