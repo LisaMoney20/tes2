@@ -41,7 +41,7 @@ android {
 
 dependencies {
 
-    // --- DEPENDÊNCIAS PRINCIPAIS DO ANDROID E COMPOSE ---
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -51,21 +51,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.gson)
-
-    // --- DEPENDÊNCIAS DE REDE (PARA O CLIENTE WEBSOCKET) ---
-    // Você está usando OkHttp no seu MessageService, então esta é a correta.
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    // --- DEPENDÊNCIAS DE ARQUITETURA (VIEWMODEL) ---
-    // A versão 2.9.1 provavelmente não existe. Usando uma versão estável mais recente.
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
-
-    // --- KOTLIN COROUTINES ---
-    // A versão 1.10.1 provavelmente não existe. Usando uma versão estável mais recente.
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
-
-    // --- DEPENDÊNCIAS DE TESTE (Nenhuma alteração aqui) ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -77,4 +66,13 @@ dependencies {
     val ktor_version = "3.2.2"
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("io.ktor:ktor-client-websockets:2.3.11")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0") // Você provavelmente já tem essa para o WebSocket
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 }
