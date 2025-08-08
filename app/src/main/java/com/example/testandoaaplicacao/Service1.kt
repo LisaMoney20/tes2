@@ -1,8 +1,14 @@
 package com.example.testandoaaplicacao
 
 
+import android.Manifest
+import android.content.Context
+import android.health.connect.datatypes.ExerciseRoute
+import android.location.Location
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
+import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -117,9 +123,9 @@ class MessageService (){
             //"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvd0pCbDJXeURSUWtiNURET2s1WTRYcTA2bjdOOWR2aiIsImlzcyI6ImF1dGgwIiwibmFtZSI6Ik1PTkVMSVNBIiwidXNlcm5hbWUiOiJtb25lbGlzYS5zb2xhckBkaW1lbnNpdmEuY29tLmJyIiwicm9sZSI6IlJPTEVfQURNSU4iLCJ1c2VyS2V5Ijoib3dKQmwyV3lEUlFrYjVERE9rNVk0WHEwNm43TjlkdmoiLCJjb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJvZmZpY2VLZXkiOiJvOERsTzFtQVJ4anIzcWdqVmdKNmRWR05MbjBiWTdLTSIsImFzc29jaWF0ZWRDb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJjb21wYW55TmFtZSI6IlNPTEFSIiwic3RhdGUiOiJDRSIsInN0YXRlS2V5IjoicDJhTGVEWWR5NGtCbUFnTGtQd1J4Vzcwb3ZsOTNKWFoiLCJmaXBzIjoiYXBpLWJyLnJlZDM2MC5hcHAiLCJ0aWQiOiJLd20wTE02eHJXYmc3S2VSTm1LMHlnZU9YbEVrYXZuOW93SkJsMld5RFJRa2I1RERPazVZNFhxMDZuN045ZHZqT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJ1aWQiOiJyV0JvTk80MFllZHo2bk1rcW01bUUzdjJwUkExeXdKajphcGktYnIucmVkMzYwLmFwcCIsImlhdCI6MTc1MzIwNzAzMiwiZXhwIjoxNzYwOTgzMDMyfQ.YB9mdc9hF3Pv6j9gkuunnX9e0K3eS02QEOrWC-2o-mbKGEnz63kXf6WCOn6rq9YWbfjgRS1uKKThWQjOXrWWUA"
             //"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvd0pCbDJXeURSUWtiNURET2s1WTRYcTA2bjdOOWR2aiIsImlzcyI6ImF1dGgwIiwibmFtZSI6Ik1PTkVMSVNBIiwidXNlcm5hbWUiOiJtb25lbGlzYS5zb2xhckBkaW1lbnNpdmEuY29tLmJyIiwicm9sZSI6IlJPTEVfQURNSU4iLCJ1c2VyS2V5Ijoib3dKQmwyV3lEUlFrYjVERE9rNVk0WHEwNm43TjlkdmoiLCJjb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJvZmZpY2VLZXkiOiJvOERsTzFtQVJ4anIzcWdqVmdKNmRWR05MbjBiWTdLTSIsImFzc29jaWF0ZWRDb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJjb21wYW55TmFtZSI6IlNPTEFSIiwic3RhdGUiOiJDRSIsInN0YXRlS2V5IjoicDJhTGVEWWR5NGtCbUFnTGtQd1J4Vzcwb3ZsOTNKWFoiLCJmaXBzIjoiYXBpLWJyLnJlZDM2MC5hcHAiLCJ0aWQiOiJLd20wTE02eHJXYmc3S2VSTm1LMHlnZU9YbEVrYXZuOW93SkJsMld5RFJRa2I1RERPazVZNFhxMDZuN045ZHZqT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJ1aWQiOiJyV0JvTk80MFllZHo2bk1rcW01bUUzdjJwUkExeXdKajphcGktYnIucmVkMzYwLmFwcCIsImlhdCI6MTc1MzIwNzAzMiwiZXhwIjoxNzYwOTgzMDMyfQ.YB9mdc9hF3Pv6j9gkuunnX9e0K3eS02QEOrWC-2o-mbKGEnz63kXf6WCOn6rq9YWbfjgRS1uKKThWQjOXrWWUA"
             //"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJwcm9maWxlUGljdHVyZVVybCI6Imh0dHBzOi8vcmVzLmNsb3VkaW5hcnkuY29tL2RoZzhlaW1nZC9pbWFnZS91cGxvYWQvdjE2MDY0ODIzMzAvcmVkMzYwLTIvNjE2NDM2MzEtMzM2NS02NjM2LTJkNjItNjUzOTYyMmQzNDY0LnBuZyIsInN1YiI6Ikx5a1pqTnpPZHhFblBhQWQ1OTdwSzhsUVhZR3dSTUIyIiwicm9sZSI6IlJPTEVfQURNSU4iLCJuYW1lIjoiRElNRU5TSVZBIiwiaXNzIjoiYXV0aDAiLCJhc3NvY2lhdGVkQ29tcGFueUtleSI6IlpEZHo1TjFHTTAyS3I2V0VWQXlua1BPYUVxSjlCTDg0IiwiY29tcGFueUtleSI6IlpEZHo1TjFHTTAyS3I2V0VWQXlua1BPYUVxSjlCTDg0Iiwic3RhdGUiOiJDRSIsImV4cCI6MTgwOTcxMDk5MSwib2ZmaWNlS2V5Ijoid3Frcjl5QkxhUE8ybU43S3c3M1F2WGVLcEd4ZzRsWlIiLCJpYXQiOjE3MTUxMDI5OTEsInVzZXJLZXkiOiJMeWtaak56T2R4RW5QYUFkNTk3cEs4bFFYWUd3Uk1CMiJ9.y97dYJnAss_qt_x0Q15TkX9TJEYYzVwMLa1oldmCH0J-pZ_nX1Bpk2uoCpeI7c901qj-dPNmfRGbuHS3RL1acQ"
-        val webSocketUrl = "wss://api-dev.routino.io/ws"
-           // "https://api-dev.routino.io/smart-route/create-user-steps.json"
-            //"wss://ws.dimensiva.io/io"
+        val webSocketUrl =
+            //"https://api-dev.routino.io/smart-route/create-user-steps.json"
+            "wss://ws.dimensiva.io/io"
 //            "ws://echo.websocket.org"
           // "ws://ws.red360.app/io"
            // "wss://demo.piesocket.com/v3/channel_123?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self"
@@ -129,7 +135,7 @@ class MessageService (){
         //val uri = webSocketUrl.toUri()
         val request = Request.Builder()
             .url("$webSocketUrl")
-           // .header("Authorization" , "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvd0pCbDJXeURSUWtiNURET2s1WTRYcTA2bjdOOWR2aiIsImlzcyI6ImF1dGgwIiwibmFtZSI6Ik1PTkVMSVNBIiwidXNlcm5hbWUiOiJtb25lbGlzYS5zb2xhckBkaW1lbnNpdmEuY29tLmJyIiwicm9sZSI6IlJPTEVfQURNSU4iLCJ1c2VyS2V5Ijoib3dKQmwyV3lEUlFrYjVERE9rNVk0WHEwNm43TjlkdmoiLCJjb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJvZmZpY2VLZXkiOiJvOERsTzFtQVJ4anIzcWdqVmdKNmRWR05MbjBiWTdLTSIsImFzc29jaWF0ZWRDb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJjb21wYW55TmFtZSI6IlNPTEFSIiwic3RhdGUiOiJDRSIsInN0YXRlS2V5IjoicDJhTGVEWWR5NGtCbUFnTGtQd1J4Vzcwb3ZsOTNKWFoiLCJmaXBzIjoiYXBpLWJyLnJlZDM2MC5hcHAiLCJ0aWQiOiJLd20wTE02eHJXYmc3S2VSTm1LMHlnZU9YbEVrYXZuOW93SkJsMld5RFJRa2I1RERPazVZNFhxMDZuN045ZHZqT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJ1aWQiOiJyV0JvTk80MFllZHo2bk1rcW01bUUzdjJwUkExeXdKajphcGktYnIucmVkMzYwLmFwcCIsImlhdCI6MTc1MzIwNzAzMiwiZXhwIjoxNzYwOTgzMDMyfQ.YB9mdc9hF3Pv6j9gkuunnX9e0K3eS02QEOrWC-2o-mbKGEnz63kXf6WCOn6rq9YWbfjgRS1uKKThWQjOXrWWUA")
+            .header("Authorization" , "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvd0pCbDJXeURSUWtiNURET2s1WTRYcTA2bjdOOWR2aiIsImlzcyI6ImF1dGgwIiwibmFtZSI6Ik1PTkVMSVNBIiwidXNlcm5hbWUiOiJtb25lbGlzYS5zb2xhckBkaW1lbnNpdmEuY29tLmJyIiwicm9sZSI6IlJPTEVfQURNSU4iLCJ1c2VyS2V5Ijoib3dKQmwyV3lEUlFrYjVERE9rNVk0WHEwNm43TjlkdmoiLCJjb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJvZmZpY2VLZXkiOiJvOERsTzFtQVJ4anIzcWdqVmdKNmRWR05MbjBiWTdLTSIsImFzc29jaWF0ZWRDb21wYW55S2V5IjoiT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJjb21wYW55TmFtZSI6IlNPTEFSIiwic3RhdGUiOiJDRSIsInN0YXRlS2V5IjoicDJhTGVEWWR5NGtCbUFnTGtQd1J4Vzcwb3ZsOTNKWFoiLCJmaXBzIjoiYXBpLWJyLnJlZDM2MC5hcHAiLCJ0aWQiOiJLd20wTE02eHJXYmc3S2VSTm1LMHlnZU9YbEVrYXZuOW93SkJsMld5RFJRa2I1RERPazVZNFhxMDZuN045ZHZqT3k2WU0yRTROOWxSa2V6bzQ1UXJMcWJ2cERCQWpYMHciLCJ1aWQiOiJyV0JvTk80MFllZHo2bk1rcW01bUUzdjJwUkExeXdKajphcGktYnIucmVkMzYwLmFwcCIsImlhdCI6MTc1MzIwNzAzMiwiZXhwIjoxNzYwOTgzMDMyfQ.YB9mdc9hF3Pv6j9gkuunnX9e0K3eS02QEOrWC-2o-mbKGEnz63kXf6WCOn6rq9YWbfjgRS1uKKThWQjOXrWWUA")
         //("Authorization", meuTokenDeAcesso)
             .build()
 
@@ -159,22 +165,47 @@ class MessageService (){
         }
     }
 
-    fun sendLocation(lat: Double, lng: Double) {
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+    fun sendLocation(lat: Double, lng: Double, context: Context) {
+        val ultimaLocalizacao : Location? = null
         if (_isConnected.value) {
             val payload = LocationPayload(lat = lat, long = lng)
             val messageToSend = WebSocketMessage(type = "LOCATION_UPDATE", payload = payload)
             val jsonMessage = gson.toJson(messageToSend)
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+            fusedLocationClient.lastLocation.addOnSuccessListener{
+                location: Location? ->
+                if (location != null){
+                    if (ultimaLocalizacao == null || location.distanceTo(ultimaLocalizacao!!) > 1){
+                        ultimaLocalizacao = location
+                        enviarDadosParaAPI(git statusDadosPost(
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        ))
+                    }
+                }
+
+            }
 
             println("Enviando localização: $jsonMessage")
-            webSocket?.send(jsonMessage)
-            // Opcional: Adicionar uma mensagem na UI para confirmar o envio
-            _messages.update {
-                val list = it.toMutableList()
-                list.add(true to "Localização enviada: ${"%.4f".format(lat)}, ${"%.4f".format(lng)}")
-                list
+//            webSocket?.send(jsonMessage)
+//            _messages.update {
+//                val list = it.toMutableList()
+//                list.add(true to "Localização enviada: ${"%.4f".format(lat)}, ${"%.4f".format(lng)}")
+//                list
+//            }
+        }
+    }
+    fun enviarDadosParaAPI() {
+        viewModelS.launch {
+            try {
+
+                // val response = RetrofitClient.apiService.enviarDados(dados)
+            } catch (e: Exception) {
+
             }
         }
     }
-
+}
 
 }

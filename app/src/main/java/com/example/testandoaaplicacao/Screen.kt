@@ -230,28 +230,28 @@ fun WebSocketChatScreen(
 private fun PermissionRequestUI(onPermissionRequest: () -> Unit) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+          //  .fillMaxWidth()
             .padding(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Permissão de Localização Necessária",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Para o rastreamento em tempo real, precisamos que você conceda a permissão de localização.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(Modifier.height(16.dp))
+//        Column(
+//            modifier = Modifier.padding(16.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Text(
+//                text = "Permissão de Localização Necessária",
+//                style = MaterialTheme.typography.titleMedium
+//            )
+//            Spacer(Modifier.height(8.dp))
+//            Text(
+//                "Para o rastreamento em tempo real, precisamos que você conceda a permissão de localização.",
+//                style = MaterialTheme.typography.bodyMedium
+//            )
+//            Spacer(Modifier.height(16.dp))
             Button(onClick = onPermissionRequest) {
                 Text("Conceder Permissão")
             }
-        }
+        //}
     }
 }
 
@@ -284,7 +284,7 @@ private fun TopAppBar(
 @Composable
 private fun MessageItem(item: Pair<Boolean, String>) {
     val (iAmTheSender, message) = item
-    // Determina o alinhamento da mensagem
+
     val alignment = if (iAmTheSender) Alignment.CenterEnd else Alignment.CenterStart
 
     Box(
@@ -329,7 +329,7 @@ private fun BottomPanel(
     }
 }
 
-// --- FUNÇÃO HELPER ---
+
 
 private fun hasLocationPermission(context: Context): Boolean {
     val fineLocationGranted = ContextCompat.checkSelfPermission(

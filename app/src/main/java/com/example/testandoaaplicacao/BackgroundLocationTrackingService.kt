@@ -51,53 +51,53 @@ class BackgroundLocationTrackingService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun start() {
-        // 1. Cria a notificação obrigatória
+
         val notification = createNotification()
 
-        // 2. Promove o serviço para "primeiro plano"
+
         startForeground(1, notification)
 
-        // 3. Inicia a lógica de negócios
+
         startTrackingLogic()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startTrackingLogic() {
-        // Conecta o WebSocket
+
         messageService.connect()
 
-        // Inicia o listener de localização
+
         locationRepository.locationUpdates(interval = 10000L) // 10s
             .onEach { latLng ->
                 println("SERVIÇO OBTEVE LOCALIZAÇÃO: $latLng")
-                // Envia a localização através do WebSocket
-                messageService.sendLocation(latLng.lat, latLng.lng)
+
+                messageService.sendLocation(latLng.lat, latLng.lng, )
             }
             .catch { e ->
-                // Lidar com erros, talvez parar o serviço
+
                 println("Erro no flow de localização: ${e.message}")
             }
-            .launchIn(serviceScope) // Lança no escopo do serviço
+            .launchIn(serviceScope)
     }
 
 
     private fun stop() {
-        // Para o serviço de primeiro plano e remove a notificação
+
         stopForeground(true)
-        // Para o serviço completamente
+
         stopSelf()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Limpeza final: cancela todas as coroutines e desconecta o WebSocket
+
         serviceScope.cancel()
         messageService.disconnect()
         println("Serviço destruído.")
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        // Não vamos usar binding por enquanto, então retornamos null.
+
         return null
     }
 
@@ -129,26 +129,24 @@ class BackgroundLocationTrackingService : Service() {
             manager.createNotificationChannel(channel)
         }
 
-        // --- NOVA LÓGICA PARA A AÇÃO DE PARAR ---
 
-        // 1. Cria um Intent para a ação de parar o serviço
         val stopIntent = Intent(this, BackgroundLocationTrackingService::class.java).apply {
             action = ACTION_STOP
         }
 
-        // 2. Cria um PendingIntent que o sistema usará para enviar o Intent em nosso nome
+
         val stopPendingIntent = PendingIntent.getService(
             this,
-            1, // um request code único
+            1,
             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // 3. Constrói a notificação e ADICIONA A AÇÃO
+
         return NotificationCompat.Builder(this, channelId)
             .setContentTitle("Rastreamento Ativo")
             .setContentText("Enviando sua localização em tempo real.")
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Use um ícone seu
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .addAction(R.drawable.ic_stop_button, "Parar", stopPendingIntent)
             .build()
