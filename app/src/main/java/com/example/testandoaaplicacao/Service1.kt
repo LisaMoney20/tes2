@@ -38,7 +38,7 @@ class MessageService (){
     val messages = _messages.asStateFlow()
 
     private val gson = Gson()
-    private val _currentLocation = MutableStateFlow<LatLong>(LatLong())
+    private val _currentLocation = MutableStateFlow<User>(User())
     val currentLocation = _currentLocation.asStateFlow()
     private var ultimaLocalizacao: Location? = null
     private val networkScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -244,13 +244,15 @@ class MessageService (){
 
             networkScope.launch {
                 fazerChamadaHttps(latitudeAtual, longitudeAtual)
-                _currentLocation.value = LatLong(lat = latitudeAtual, lng = longitudeAtual)
+                _currentLocation.value = User(lat = latitudeAtual, lon = longitudeAtual)
             }
         } else {
 
             println("menos de 1 metro.")
         }
     }
+
+
 //    fun enviarLocalizacaoSeNecessario(lat: Double, long: Double) {
 //        val localizacaoAtual = Location("provider").apply {
 //            latitude = lat

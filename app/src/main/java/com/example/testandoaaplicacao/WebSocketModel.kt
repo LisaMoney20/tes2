@@ -21,7 +21,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val socketStatus = messageService.isConnected
     val messages = messageService.messages
     private var locationJob: Job? = null
-    val currentLocation: StateFlow<LatLong> = messageService.currentLocation
+    val currentLocation: StateFlow<User> = messageService.currentLocation
 //    fun startLocationUpdates()
 //    {
 //        locationJob?.cancel()

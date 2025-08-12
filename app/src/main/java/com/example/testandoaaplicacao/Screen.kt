@@ -39,7 +39,7 @@ fun WebSocketChatScreen(
 
     val messages by viewModel.messages.collectAsState(emptyList())
     val listState = rememberLazyListState()
-    val currentLocation by viewModel.currentLocation.collectAsState()
+   // val currentLocation by viewModel.currentLocation.collectAsState()
 //    LaunchedEffect(messages.size) {
 //        if (messages.isNotEmpty()) { listState.animateScrollToItem(messages.lastIndex) }
 //    }
@@ -90,9 +90,9 @@ fun WebSocketChatScreen(
                     }
                 )
             }
-            currentLocation?.let { (lat, lng) ->
-                Text("Posição: Lat ${"%.4f".format(lat)}, Lon ${"%.4f".format(lng)}")
-            }
+//            currentLocation?.let { (lat, lng) ->
+//                Text("Posição: Lat ${"%.4f".format(lat)}, Lon ${"%.4f".format(lng)}")
+//            }
             LazyColumn(state = listState, modifier = Modifier.weight(1f).fillMaxWidth()) {
                 items(messages) { item -> MessageItem(item = item) }
             }
@@ -148,7 +148,7 @@ fun WebSocketChatScreen(
 //        }
 //    }
 //
-//    // --- LÓGICA DE PERMISSÃO DE LOCALIZAÇÃO ---
+//
 //
 //    // 1. Estado para saber se a permissão foi concedida
 //    var hasLocationPermission by remember {

@@ -6,9 +6,11 @@ import retrofit2.http.POST
 
 interface ApiService {
 
-    @POST("https://api-dev.routino.io/smart-route/create-user-steps.json/")
-    suspend fun sendLocation(
+    @POST("create-user-steps.json")
+    suspend fun createUser(@Body user: User): Response<User>
 
+   // @POST("create-user-steps.json")
+    suspend fun sendLocation(
         @Body locationData: LocationPostRequest
     ): Response<Unit>
 }
