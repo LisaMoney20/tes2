@@ -18,8 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.catch      // Para a função .catch()
-import kotlinx.coroutines.flow.launchIn   // Para a função .launchIn()
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 
@@ -61,6 +61,7 @@ class BackgroundLocationTrackingService : Service() {
         startTrackingLogic()
     }
 
+    @SuppressLint("MissingPermission")
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startTrackingLogic() {
 
@@ -70,12 +71,15 @@ class BackgroundLocationTrackingService : Service() {
         locationRepository.locationUpdates(interval = 10000L) // 10s
             .onEach { latLng ->
                 println("SERVIÇO OBTEVE LOCALIZAÇÃO: $latLng")
+               // messageService.sendLocation(latLng.lat, latLng.lng, this)
+                //  messageService.sendLocation(latLng.lat, latLng.lng, )
+                messageService.enviarLocalizacaoSeNecessario(latLng.lat, latLng.lng)
 
-                messageService.sendLocation(latLng.lat, latLng.lng, )
             }
             .catch { e ->
 
                 println("Erro no flow de localização: ${e.message}")
+                stopSelf()
             }
             .launchIn(serviceScope)
     }

@@ -18,8 +18,11 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -35,8 +38,10 @@ class MessageService (){
     val messages = _messages.asStateFlow()
 
     private val gson = Gson()
-
-
+    private val _currentLocation = MutableStateFlow<LatLong>(LatLong())
+    val currentLocation = _currentLocation.asStateFlow()
+    private var ultimaLocalizacao: Location? = null
+    private val networkScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     @RequiresApi(Build.VERSION_CODES.O)
     private val okHttpClient = OkHttpClient.Builder()
         .pingInterval(Duration.ofMillis(20000))
@@ -165,47 +170,116 @@ class MessageService (){
         }
     }
 
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
-    fun sendLocation(lat: Double, lng: Double, context: Context) {
-        val ultimaLocalizacao : Location? = null
-        if (_isConnected.value) {
-            val payload = LocationPayload(lat = lat, long = lng)
-            val messageToSend = WebSocketMessage(type = "LOCATION_UPDATE", payload = payload)
-            val jsonMessage = gson.toJson(messageToSend)
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-            fusedLocationClient.lastLocation.addOnSuccessListener{
-                location: Location? ->
-                if (location != null){
-                    if (ultimaLocalizacao == null || location.distanceTo(ultimaLocalizacao!!) > 1){
-                        ultimaLocalizacao = location
-                        enviarDadosParaAPI(git statusDadosPost(
-                            latitude = location.latitude,
-                            longitude = location.longitude
-                        ))
-                    }
-                }
-
-            }
-
-            println("Enviando localização: $jsonMessage")
+//    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+//    fun sendLocation(lat: Double, lng: Double, context: Context) {
+//        val ultimaLocalizacao: Location? = null
+//        if (!_isConnected.value) {
+//            return
+//        }
+//        val localizacaoAtual = Location("LocationProvider").apply {
+//            latitude = lat
+//            longitude = lng
+//        }
+//        if (ultimaLocalizacao == null || localizacaoAtual.distanceTo(ultimaLocalizacao!!) > 1) {
+//            println("Distância suficiente. Enviando localização: $lat, $lng")
+//
+//            val payload = LocationPayload(lat = lat, long = lng)
+//            val messageToSend = WebSocketMessage(type = "LOCATION_UPDATE", payload = payload)
+//            val jsonMessage = gson.toJson(messageToSend)
 //            webSocket?.send(jsonMessage)
-//            _messages.update {
-//                val list = it.toMutableList()
-//                list.add(true to "Localização enviada: ${"%.4f".format(lat)}, ${"%.4f".format(lng)}")
-//                list
-//            }
-        }
-    }
-    fun enviarDadosParaAPI() {
-        viewModelS.launch {
-            try {
+//
+//        }else{
+//            println("Localização muito próxima da anterior. Não será enviada.")
+//        }
+//        }
 
-                // val response = RetrofitClient.apiService.enviarDados(dados)
-            } catch (e: Exception) {
+    private suspend fun fazerChamadaHttps(latitudeAtual: Double, longitudeAtual: Double) {
 
+        val requestBody = LocationPostRequest(
+            userId = null,
+            lat = latitudeAtual,
+            lon = longitudeAtual
+        )
+
+        try {
+            println(" Fazendo chamada HTTPS: $requestBody")
+
+
+            val response = RetrofitClient.instance.sendLocation(requestBody)
+
+            if (response.isSuccessful) {
+                println(" Sucesso HTTPS! Requisição POST enviada.")
+            } else {
+                println(" Erro HTTPS! Código: ${response.code()}, Mensagem: ${response.errorBody()?.string()}")
             }
+        } catch (e: Exception) {
+            println("Falha na conexão HTTPS: ${e.message}")
         }
     }
-}
 
-}
+    fun enviarLocalizacaoSeNecessario(latitudeAtual: Double, longitudeAtual: Double) {
+
+
+        val localizacaoAtual = Location("provider").apply {
+            latitude = latitudeAtual
+            longitude = longitudeAtual
+        }
+
+
+        val deveEnviar = ultimaLocalizacao == null || localizacaoAtual.distanceTo(ultimaLocalizacao!!) > 1
+
+
+        if (deveEnviar) {
+            println(" MAIOR QUE 1 METRO! ${deveEnviar}.")
+
+
+            this.ultimaLocalizacao = localizacaoAtual
+
+
+            val payloadWebSocket = LocationPayload(lat = latitudeAtual, long = longitudeAtual)
+            val mensagemWebSocket = WebSocketMessage(type = "LOCATION_UPDATE", payload = payloadWebSocket)
+            val jsonMessageWebSocket = gson.toJson(mensagemWebSocket)
+            webSocket?.send(jsonMessageWebSocket)
+
+
+            networkScope.launch {
+                fazerChamadaHttps(latitudeAtual, longitudeAtual)
+                _currentLocation.value = LatLong(lat = latitudeAtual, lng = longitudeAtual)
+            }
+        } else {
+
+            println("menos de 1 metro.")
+        }
+    }
+//    fun enviarLocalizacaoSeNecessario(lat: Double, long: Double) {
+//        val localizacaoAtual = Location("provider").apply {
+//            latitude = lat
+//            longitude = long
+//        }
+//        val ultimaLocalizacao: Location? = null
+//        if (!_isConnected.value) {
+//            return
+//        }
+//        val deveEnviar = ultimaLocalizacao == null || localizacaoAtual.distanceTo(ultimaLocalizacao!!) > 1
+//
+//        if (deveEnviar) {
+//            println("Movimento detectado! Iniciando envio para WebSocket e HTTPS.")
+//
+//            this.ultimaLocalizacao = localizacaoAtual
+//
+//            val payload = LocationPayload(lat = lat, long = long)
+//            val messageToSend = WebSocketMessage(type = "LOCATION_UPDATE", payload = payload)
+//            val jsonMessage = gson.toJson(messageToSend)
+//            webSocket?.send(jsonMessage)
+//
+//            networkScope.launch {
+//                fazerChamadaHttps(lat, long)
+//            }
+//        }
+//    }
+
+    }
+
+
+
+

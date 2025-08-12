@@ -39,10 +39,10 @@ fun WebSocketChatScreen(
 
     val messages by viewModel.messages.collectAsState(emptyList())
     val listState = rememberLazyListState()
-
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) { listState.animateScrollToItem(messages.lastIndex) }
-    }
+    val currentLocation by viewModel.currentLocation.collectAsState()
+//    LaunchedEffect(messages.size) {
+//        if (messages.isNotEmpty()) { listState.animateScrollToItem(messages.lastIndex) }
+//    }
 
     var hasLocationPermission by remember { mutableStateOf(hasLocationPermission(context)) }
 
@@ -62,7 +62,8 @@ fun WebSocketChatScreen(
            )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier.padding(padding).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+
             LaunchedEffect(hasLocationPermission) {
                 if (hasLocationPermission) {
                     Intent(context, BackgroundLocationTrackingService::class.java).also {
@@ -88,6 +89,9 @@ fun WebSocketChatScreen(
                         )
                     }
                 )
+            }
+            currentLocation?.let { (lat, lng) ->
+                Text("Posição: Lat ${"%.4f".format(lat)}, Lon ${"%.4f".format(lng)}")
             }
             LazyColumn(state = listState, modifier = Modifier.weight(1f).fillMaxWidth()) {
                 items(messages) { item -> MessageItem(item = item) }
@@ -314,7 +318,8 @@ private fun BottomPanel(
             value = text,
             onValueChange = { s -> text = s },
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Digite uma mensagem...")}
+            placeholder = { Text("Digite uma mensagem...")},
+            maxLines = 1
         )
         Spacer(modifier = Modifier.width(8.dp))
         Button(

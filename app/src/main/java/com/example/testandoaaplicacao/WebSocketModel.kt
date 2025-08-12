@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -20,26 +21,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val socketStatus = messageService.isConnected
     val messages = messageService.messages
     private var locationJob: Job? = null
-    fun startLocationUpdates()
-    {
-        locationJob?.cancel()
-        locationJob = locationRepository.locationUpdates(interval = 10000L)
-            .onEach {latLng ->
-                println("ViewModel recebeu localização: $latLng")
-                messageService.sendLocation(latLng.lat, latLng.lng)
-
-            }
-            .catch {e ->
-                println("Erro ao obter localização: ${e.message}")
-            }
-            .launchIn(viewModelScope)
-
-    }
-
-    fun stopLocationUpdates() {
-        locationJob?.cancel()
-        println("Atualizações de localização paradas.")
-    }
+    val currentLocation: StateFlow<LatLong> = messageService.currentLocation
+//    fun startLocationUpdates()
+//    {
+//        locationJob?.cancel()
+//        locationJob = locationRepository.locationUpdates(interval = 10000L)
+//            .onEach {latLng ->
+//                println("ViewModel recebeu localização: $latLng")
+//                messageService.sendLocation(latLng.lat, latLng.lng)
+//
+//            }
+//            .catch {e ->
+//                println("Erro ao obter localização: ${e.message}")
+//            }
+//            .launchIn(viewModelScope)
+//
+//    }
+//
+//    fun stopLocationUpdates() {
+//        locationJob?.cancel()
+//        println("Atualizações de localização paradas.")
+//    }
 
 //    @RequiresApi(Build.VERSION_CODES.O)
 //    override fun onCleared() {
